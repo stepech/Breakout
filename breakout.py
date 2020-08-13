@@ -69,11 +69,17 @@ def main():
     miss = 0 # Better keep it that way
     hit = 0
 
+    # TODO: Add visible label for missed balls so player knows how many attempts has he still got.
+
     bricks = setup(c)  # Bricks is list of all bricks on the screen
     paddle, paddle_y = setup_paddle(c)  # Paddle is object for paddle, paddle_y to keep him on same y when moving
     ball = setup_ball(c, miss)  # Ball is object for ball
 
     while miss < NTURNS and hit < NBRICK_ROWS*NBRICK_COLUMNS:
+        # Moves paddle
+        mouse_x = c.get_mouse_x()
+        c.moveto(paddle, mouse_x - PADDLE_WIDTH // 2, paddle_y)
+        # Moves ball, checks for objects colliding with ball
         move_ball(c, ball, velocity_x, velocity_y)
         objects = c.find_overlapping(c.get_left_x(ball),c.get_top_y(ball),c.get_left_x(ball)+BALL_RADIUS,c.get_top_y(ball)+BALL_RADIUS)
 
@@ -85,7 +91,7 @@ def main():
             if crashed == paddle:
                 if (c.get_top_y(ball) + BALL_RADIUS/2) < (c.get_top_y(paddle) + PADDLE_HEIGHT/2):
                     velocity_y = -velocity_y
-
+        # Control for all 4 walls
         velocity_x = check_walls(c, ball, velocity_x)
         velocity_y = check_ceiling(c, ball, velocity_y)
         if c.get_top_y(ball)+BALL_RADIUS >= c.get_canvas_height()-velocity_y:
@@ -96,8 +102,8 @@ def main():
 
         c.update()
         time.sleep(DELAY)
-        mouse_x = c.get_mouse_x()
-        c.moveto(paddle, mouse_x - PADDLE_WIDTH//2, paddle_y)
+
+    # TODO: Player either crashed 3 times or finished game, add label for that
 
     c.mainloop()
 
