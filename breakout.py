@@ -64,6 +64,17 @@ def main():
     c.set_canvas_title("Breakout")
 
     bricks = setup(c) # Bricks is list of all bricks on the screen
+    ball = setup_ball(c) # Ball is object for ball
+    paddle = setup_paddle(c) # Paddle is object for paddle
+
+    miss = 0
+    ball_x = random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX) * random.choice(-1, 1)
+
+
+    while miss < NTURNS or len(bricks) != 0:
+        move_ball(c, ball, ball_x)
+
+
 
     c.mainloop()
 
@@ -94,7 +105,34 @@ def setup(c):
             bricks.append(brick)
     return bricks
 
+def setup_ball(c):
+    """
+    Creates ball and sets his color
+    Inside: Puts ball in the middle of the screen, sets black
+    Input: canvas
+    Output: Returns ball as an object
+    """
+    x = c.get_canvas_width()/2 - BALL_RADIUS/2
+    y = c.get_canvas_height()/2
+    ball = c.create_oval(x,y,x+BALL_RADIUS,y+BALL_RADIUS)
+    c.set_color(ball, "black")
+    return ball
 
+def setup_paddle(c):
+    """
+    Creates paddle in the middle
+    Inside: Sets paddle
+    Input: canvas
+    Output: Returns paddle as an object
+    """
+    x = c.get_canvas_width()/2 - PADDLE_WIDTH/2
+    y = c.get_canvas_height() - PADDLE_Y_OFFSET - PADDLE_HEIGHT
+    paddle = c.create_rectangle(x, y, x+PADDLE_WIDTH, y+PADDLE_HEIGHT)
+    c.set_color(paddle, "black")
+    return paddle
+
+def move_ball(c, ball, ball_x):
+    y = VELOCITY_Y
 
 
 if __name__ == '__main__':
