@@ -63,20 +63,32 @@ def main():
     c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     c.set_canvas_title("Breakout")
 
-    bricks = setup(c) # Bricks is list of all bricks on the screen
-    ball = setup_ball(c) # Ball is object for ball
-    paddle = setup_paddle(c) # Paddle is object for paddle
+    velocity_y = VELOCITY_Y
+
+    bricks = setup(c)  # Bricks is list of all bricks on the screen
+    ball = setup_ball(c)  # Ball is object for ball
+    paddle, paddle_y = setup_paddle(c)  # Paddle is object for paddle
 
     miss = 0
-    ball_x = random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX) * random.choice(-1, 1)
-
+    ball_x = random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX) * random.choice([-1, 1])
 
     while miss < NTURNS or len(bricks) != 0:
-        move_ball(c, ball, ball_x)
-
-
+        move_ball(c, ball, ball_x, velocity_y)
+        objects = c.find_overlapping(c.get_left_x(ball), c.get_top_y(ball), c.get_left_x(ball) + BALL_RADIUS, c.get_top_y(ball) + BALL_RADIUS)
+        for crashed in objects:
+            for brick in bricks:
+                if crashed == brick:
+                    c.delete(bricks.pop(brick))
+            if crashed == paddle:
+                if (c.get_top_y(ball) + BALL_RADIUS/2) < (c.get_top_y(paddle) + PADDLE_HEIGHT/2):
+                    velocity_y = -velocity_y
+        c.update()
+        time.sleep(DELAY)
+        mouse_x = c.get_mouse_x()
+        c.moveto(paddle, mouse_x, paddle_y)
 
     c.mainloop()
+
 
 def setup(c):
     """
@@ -86,24 +98,17 @@ def setup(c):
     Output: returns list of bricks
     """
     bricks = []
+    color = ["red", "orange", "yellow", "lime green", "cyan"]
     for i in range(NBRICK_ROWS):
         y = BRICK_Y_OFFSET + i * (BRICK_HEIGHT + BRICK_SEP)
         for j in range(NBRICK_COLUMNS):
-            x = int(j * (BRICK_WIDTH + BRICK_SEP) + (c.get_canvas_width()/2 - (NBRICK_COLUMNS*BRICK_WIDTH + (NBRICK_COLUMNS-1)*BRICK_SEP)/2))
-            brick = c.create_rectangle(x, y, x+BRICK_WIDTH, y+BRICK_HEIGHT)
-            if i < 0.2 * NBRICK_ROWS:
-                color = "red"
-            elif i < 0.4 * NBRICK_ROWS:
-                color = "orange"
-            elif i < 0.6 * NBRICK_ROWS:
-                color = "yellow"
-            elif i < 0.8 * NBRICK_ROWS:
-                color = "green"
-            else:
-                color = "cyan"
-            c.set_color(brick, color)
+            x = int(j * (BRICK_WIDTH + BRICK_SEP) + (c.get_canvas_width() / 2 - (
+                        NBRICK_COLUMNS * BRICK_WIDTH + (NBRICK_COLUMNS - 1) * BRICK_SEP) / 2))
+            brick = c.create_rectangle(x, y, x + BRICK_WIDTH, y + BRICK_HEIGHT)
+            c.set_color(brick, color[i // 2])
             bricks.append(brick)
     return bricks
+
 
 def setup_ball(c):
     """
@@ -112,27 +117,30 @@ def setup_ball(c):
     Input: canvas
     Output: Returns ball as an object
     """
-    x = c.get_canvas_width()/2 - BALL_RADIUS/2
-    y = c.get_canvas_height()/2
-    ball = c.create_oval(x,y,x+BALL_RADIUS,y+BALL_RADIUS)
+    x = c.get_canvas_width() / 2 - BALL_RADIUS / 2
+    y = c.get_canvas_height() / 2
+    ball = c.create_oval(x, y, x + BALL_RADIUS, y + BALL_RADIUS)
     c.set_color(ball, "black")
     return ball
+
 
 def setup_paddle(c):
     """
     Creates paddle in the middle
     Inside: Sets paddle
     Input: canvas
-    Output: Returns paddle as an object
+    Output: Returns paddle as an object, his y coordinate as int
     """
-    x = c.get_canvas_width()/2 - PADDLE_WIDTH/2
+    x = c.get_canvas_width() / 2 - PADDLE_WIDTH / 2
     y = c.get_canvas_height() - PADDLE_Y_OFFSET - PADDLE_HEIGHT
-    paddle = c.create_rectangle(x, y, x+PADDLE_WIDTH, y+PADDLE_HEIGHT)
+    paddle = c.create_rectangle(x, y, x + PADDLE_WIDTH, y + PADDLE_HEIGHT)
     c.set_color(paddle, "black")
-    return paddle
+    return paddle, y
 
-def move_ball(c, ball, ball_x):
-    y = VELOCITY_Y
+
+def move_ball(c, ball, ball_x, velocity_y):
+    c.move(ball, ball_x, velocity_y)
+    c.update()
 
 
 if __name__ == '__main__':
