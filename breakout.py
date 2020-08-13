@@ -1,25 +1,8 @@
-"""
-File: breakout.py
------------------
-This program implements the game Breakout!  The user controls a paddle
-moving horizontally with the mouse, and the user must bounce the ball
-to make it collide and remove bricks from the screen.  The user has
-3 turns.  If the ball falls below the bottom of the screen, the user
-loses a turn.  If the user removes all bricks before their turns
-run out, they win!
-"""
-
 import math
 from graphics import Canvas
 import random
 import time
 
-"""
-Dimensions of the canvas, in pixels
-These should be used when setting up the initial size of the game,
-but in later calculations you should use canvas.get_canvas_width() and 
-canvas.get_canvas_height() rather than these constants for accurate size information.
-"""
 CANVAS_WIDTH = 420
 CANVAS_HEIGHT = 600
 
@@ -77,12 +60,41 @@ BOUNCE_SOUND = "bounce.au"
 
 
 def main():
-    canvas = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
-    canvas.set_canvas_title("Breakout")
+    c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
+    c.set_canvas_title("Breakout")
 
-    # TODO: your code here!
+    bricks = setup(c) # Bricks is list of all bricks on the screen
 
-    canvas.mainloop()
+    c.mainloop()
+
+def setup(c):
+    """
+    Initializes whole playground with all columns in correct position and color
+    Inside: Builds all bricks on the screen and sets their color
+    Input: canvas
+    Output: returns list of bricks
+    """
+    bricks = []
+    for i in range(NBRICK_ROWS):
+        y = BRICK_Y_OFFSET + i * (BRICK_HEIGHT + BRICK_SEP)
+        for j in range(NBRICK_COLUMNS):
+            x = int(j * (BRICK_WIDTH + BRICK_SEP) + (c.get_canvas_width()/2 - (NBRICK_COLUMNS*BRICK_WIDTH + (NBRICK_COLUMNS-1)*BRICK_SEP)/2))
+            brick = c.create_rectangle(x, y, x+BRICK_WIDTH, y+BRICK_HEIGHT)
+            if i < 0.2 * NBRICK_ROWS:
+                color = "red"
+            elif i < 0.4 * NBRICK_ROWS:
+                color = "orange"
+            elif i < 0.6 * NBRICK_ROWS:
+                color = "yellow"
+            elif i < 0.8 * NBRICK_ROWS:
+                color = "green"
+            else:
+                color = "cyan"
+            c.set_color(brick, color)
+            bricks.append(brick)
+    return bricks
+
+
 
 
 if __name__ == '__main__':
