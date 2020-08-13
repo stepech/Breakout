@@ -71,6 +71,8 @@ def main():
 
     # TODO: Add visible label for missed balls so player knows how many attempts has he still got.
 
+    # TODO: Add noise
+
     bricks = setup(c)  # Bricks is list of all bricks on the screen
     paddle, paddle_y = setup_paddle(c)  # Paddle is object for paddle, paddle_y to keep him on same y when moving
     ball = setup_ball(c, miss)  # Ball is object for ball
@@ -206,26 +208,23 @@ def complex_collision_calculator(c, ball, brick, velocity_x, velocity_y):
     ball_middle_x = c.get_left_x(ball) + BALL_RADIUS/2
     ball_middle_y = c.get_top_y(ball) + BALL_RADIUS/2
 
-    brick_x1 = c.get_left_x(brick)
-    brick_x2 = c.get_left_x(brick) + BRICK_WIDTH
-    brick_y1 = c.get_top_y(brick)
-    brick_y2 = c.get_top_y(brick) + BRICK_WIDTH
+    brick_coords = c.coords(brick)
 
     c.delete(brick)
 
-    if ball_middle_x > brick_x2:
-        if ball_middle_y > brick_y2:
+    if ball_middle_x > brick_coords[2]:
+        if ball_middle_y > brick_coords[3]:
             return random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX), VELOCITY_Y
-        elif ball_middle_y > brick_y1:
+        elif ball_middle_y > brick_coords[1]:
             return -velocity_x, velocity_y
         else:
             return random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX), -VELOCITY_Y
-    elif ball_middle_x > brick_x1:
+    elif ball_middle_x > brick_coords[0]:
         return velocity_x, -velocity_y
     else:
-        if ball_middle_y > brick_y2:
+        if ball_middle_y > brick_coords[3]:
             return -random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX), VELOCITY_Y
-        elif ball_middle_y > brick_y1:
+        elif ball_middle_y > brick_coords[1]:
             return -velocity_x, velocity_y
         else:
             return -random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX), -VELOCITY_Y
