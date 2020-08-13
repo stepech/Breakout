@@ -64,18 +64,22 @@ def main():
     c = Canvas(CANVAS_WIDTH, CANVAS_HEIGHT)
     c.set_canvas_title("Breakout")
 
-    velocity_y = VELOCITY_Y # Makes life sooooo easier
+    velocity_y = VELOCITY_Y  # Makes life sooooo easier
     velocity_x = random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX) * random.choice([-1, 1])
-    miss = 0 # Better keep it that way
+    miss = 0  # Better keep it that way
     hit = 0
 
-    # TODO: Add visible label for missed balls so player knows how many attempts has he still got.
+    miss_label = c.create_text(0.05*c.get_canvas_width() + 25, 0.02*c.get_canvas_height()+10, "Lives left: " + str(3-miss))
+    c.set_font(miss_label, "Papyrus", 12)
 
-    # TODO: Add noise
+    start_label = c.create_text(c.get_canvas_width()/2, c.get_canvas_height()*0.6, "Click to START")
+    c.set_font(start_label, "Papyrus", 25)
 
     bricks = setup(c)  # Bricks is list of all bricks on the screen
     paddle, paddle_y = setup_paddle(c)  # Paddle is object for paddle, paddle_y to keep him on same y when moving
-    ball = setup_ball(c, miss)  # Ball is object for ball
+    ball = setup_ball(c)  # Ball is object for ball
+
+    c.delete(start_label)
 
     while miss < NTURNS and hit < NBRICK_ROWS*NBRICK_COLUMNS:
         # Moves paddle
@@ -83,7 +87,7 @@ def main():
         c.moveto(paddle, mouse_x - PADDLE_WIDTH // 2, paddle_y)
         # Moves ball, checks for objects colliding with ball
         move_ball(c, ball, velocity_x, velocity_y)
-        objects = c.find_overlapping(c.get_left_x(ball),c.get_top_y(ball),c.get_left_x(ball)+BALL_RADIUS,c.get_top_y(ball)+BALL_RADIUS)
+        objects = c.find_overlapping(c.get_left_x(ball), c.get_top_y(ball), c.get_left_x(ball)+BALL_RADIUS, c.get_top_y(ball)+BALL_RADIUS)
 
         for crashed in objects:
             for brick in bricks:
@@ -99,13 +103,23 @@ def main():
         if c.get_top_y(ball)+BALL_RADIUS >= c.get_canvas_height()-velocity_y:
             # Checks for contact with floor
             miss += 1
+            c.set_text(miss_label, "Lives left: " + str(3-miss))
             c.delete(ball)
-            ball = setup_ball(c, miss)
+            if miss != 3:
+                ball = setup_ball(c)
 
         c.update()
         time.sleep(DELAY)
 
-    # TODO: Player either crashed 3 times or finished game, add label for that
+    if miss == NTURNS:
+        end_text = "Game over!"
+    elif hit >= NBRICK_ROWS * NBRICK_COLUMNS:
+        end_text = "You won!!"
+    else:
+        end_text = "Something unexpected happened"
+
+    end_label = c.create_text(c.get_canvas_width()/2, c.get_canvas_height()*0.5, end_text)
+    c.set_font(end_label, "Papyrus", 30)
 
     c.mainloop()
 
@@ -130,7 +144,7 @@ def setup(c):
     return bricks
 
 
-def setup_ball(c, miss):
+def setup_ball(c):
     """
     Creates ball and sets his color
     Inside: Puts ball in the middle of the screen, sets black. Waits till user clicks, unless user made third mistake
@@ -141,8 +155,7 @@ def setup_ball(c, miss):
     y = c.get_canvas_height() / 2
     ball = c.create_oval(x, y, x + BALL_RADIUS, y + BALL_RADIUS)
     c.set_color(ball, "black")
-    if miss < 3:
-        c.wait_for_click()
+    c.wait_for_click()
     return ball
 
 
