@@ -36,8 +36,8 @@ VELOCITY_Y = 6.0
 
 # The ball's minimum and maximum horizontal velocity; the bounds of the
 # initial random velocity that you should choose (randomly +/-).
-VELOCITY_X_MIN = 2.0
-VELOCITY_X_MAX = 6.0
+VELOCITY_X_MIN = 2
+VELOCITY_X_MAX = 6
 
 # Animation delay or pause time between ball moves (in seconds)
 DELAY = 1 / 60
@@ -64,28 +64,39 @@ def main():
     c.set_canvas_title("Breakout")
 
     velocity_y = VELOCITY_Y
-
-    bricks = setup(c)  # Bricks is list of all bricks on the screen
-    ball = setup_ball(c)  # Ball is object for ball
-    paddle, paddle_y = setup_paddle(c)  # Paddle is object for paddle
-
     miss = 0
     ball_x = random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX) * random.choice([-1, 1])
+    hit = 0
 
-    while miss < NTURNS or len(bricks) != 0:
+    bricks = setup(c)  # Bricks is list of all bricks on the screen
+    paddle, paddle_y = setup_paddle(c)  # Paddle is object for paddle
+    ball = setup_ball(c, miss)  # Ball is object for ball
+
+    while miss < NTURNS and hit < NBRICK_ROWS*NBRICK_COLUMNS:
         move_ball(c, ball, ball_x, velocity_y)
         objects = c.find_overlapping(c.get_left_x(ball), c.get_top_y(ball), c.get_left_x(ball) + BALL_RADIUS, c.get_top_y(ball) + BALL_RADIUS)
         for crashed in objects:
             for brick in bricks:
                 if crashed == brick:
-                    c.delete(bricks.pop(brick))
+                    c.delete(brick)
+                    hit += 1
+                    velocity_y = - velocity_y
             if crashed == paddle:
                 if (c.get_top_y(ball) + BALL_RADIUS/2) < (c.get_top_y(paddle) + PADDLE_HEIGHT/2):
                     velocity_y = -velocity_y
+
+        ball_x = check_walls(c, ball, ball_x)
+        velocity_y = check_ceiling(c, ball, velocity_y)
+
+        if c.get_top_y(ball)+BALL_RADIUS >= c.get_canvas_height()-velocity_y:
+            miss += 1
+            c.delete(ball)
+            ball = setup_ball(c, miss)
+
         c.update()
         time.sleep(DELAY)
         mouse_x = c.get_mouse_x()
-        c.moveto(paddle, mouse_x, paddle_y)
+        c.moveto(paddle, mouse_x - PADDLE_WIDTH//2, paddle_y)
 
     c.mainloop()
 
@@ -110,10 +121,10 @@ def setup(c):
     return bricks
 
 
-def setup_ball(c):
+def setup_ball(c, miss):
     """
     Creates ball and sets his color
-    Inside: Puts ball in the middle of the screen, sets black
+    Inside: Puts ball in the middle of the screen, sets black. Waits till user clicks.
     Input: canvas
     Output: Returns ball as an object
     """
@@ -121,6 +132,8 @@ def setup_ball(c):
     y = c.get_canvas_height() / 2
     ball = c.create_oval(x, y, x + BALL_RADIUS, y + BALL_RADIUS)
     c.set_color(ball, "black")
+    if miss < 3:
+        c.wait_for_click()
     return ball
 
 
@@ -141,6 +154,20 @@ def setup_paddle(c):
 def move_ball(c, ball, ball_x, velocity_y):
     c.move(ball, ball_x, velocity_y)
     c.update()
+
+
+def check_walls(c, ball, ball_x):
+    if c.get_left_x(ball) < VELOCITY_X_MAX or c.get_left_x(ball) + BALL_RADIUS > c.get_canvas_width() - VELOCITY_X_MAX:
+        unit = ball_x // abs(ball_x)
+        ball_x = random.randint(VELOCITY_X_MIN, VELOCITY_X_MAX) * -unit
+        c.move(ball, VELOCITY_X_MAX*-unit, 0)
+    return ball_x
+
+
+def check_ceiling(c, ball, velocity_y):
+    if c.get_top_y(ball) <= velocity_y and velocity_y//abs(velocity_y) < 0:
+        return -velocity_y
+    return velocity_y
 
 
 if __name__ == '__main__':
